@@ -6,18 +6,21 @@ import MockExamCard from '../components/MockExamCard';
 const MockExamCardHolder: React.FC = () => {
     const mockExams = [
     {
+      id:"example",
       title: "Math Mock Exam",
       description: "Test your math skills with this comprehensive mock exam.",
       duration: 60,
       questionCount: 3
     },
     {
+      id:"example",
       title: "Science Mock Exam",
       description: "Prepare for your science exam with this practice test.",
       duration: 90,
       questionCount: 4
     },
     {
+      id:"example",
       title: "English Mock Exam",
       description: "Enhance your English language proficiency with this mock exam.",
       duration: 75,
@@ -30,9 +33,10 @@ const MockExamCardHolder: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-center mb-10">Mock Exams</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockExams.map((exam, index) => (
+          {mockExams.map((exam) => (
             <MockExamCard
-              key={index}
+              id={exam.id}
+              key={exam.id}
               title={exam.title}
               description={exam.description}
               duration={exam.duration}
