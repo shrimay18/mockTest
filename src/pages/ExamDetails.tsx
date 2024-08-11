@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 interface ExamInfo {
   title: string;
@@ -20,6 +21,7 @@ const examData: { [key: string]: ExamInfo } = {
 };
 
 const ExamDetails: React.FC = () => {
+  const navigate = useNavigate();
   const { examId } = useParams<{ examId: string }>();
   const [exam, setExam] = useState<ExamInfo | null>(null);
   const [progress, setProgress] = useState<number>(0);
@@ -45,6 +47,7 @@ const ExamDetails: React.FC = () => {
       setProgress(0);
       localStorage.setItem(`exam_${examId}_progress`, '0');
     }
+    navigate(`/mock-exam/${examId}/start`);
     // Here you would typically navigate to the actual exam page
     console.log('Starting/Continuing exam');
   };
