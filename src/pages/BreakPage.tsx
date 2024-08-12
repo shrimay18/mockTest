@@ -1,37 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import ConfettiExplosion  from 'react-confetti-explosion';
 import { motion } from 'framer-motion';
+import  ConfettiExplosion  from 'react-confetti-explosion';
 
 interface BreakPageProps {
   questionsAttempted: number;
   totalQuestionsInFirstHalf: number;
   examTimeLeft: number;
+  breakTimeLeft: number;
   onBreakEnd: () => void;
 }
 
-const BreakPage: React.FC<BreakPageProps> = ({ 
-  questionsAttempted, 
-  totalQuestionsInFirstHalf, 
-  examTimeLeft, 
-  onBreakEnd 
+const BreakPage: React.FC<BreakPageProps> = ({
+  questionsAttempted,
+  totalQuestionsInFirstHalf,
+  examTimeLeft,
+  breakTimeLeft,
+  onBreakEnd
 }) => {
-  const [breakTimeLeft, setBreakTimeLeft] = useState(90); // 1.5 minutes in seconds
   const [showConfetti, setShowConfetti] = useState(true);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setBreakTimeLeft((prevTime) => {
-        if (prevTime <= 1) {
-          clearInterval(timer);
-          onBreakEnd();
-          return 0;
-        }
-        return prevTime - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [onBreakEnd]);
+    if (breakTimeLeft <= 0) {
+      onBreakEnd();
+    }
+  }, [breakTimeLeft, onBreakEnd]);
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -93,3 +85,4 @@ const BreakPage: React.FC<BreakPageProps> = ({
 };
 
 export default BreakPage;
+
