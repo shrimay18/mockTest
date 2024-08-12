@@ -92,6 +92,9 @@ const ExamPage: React.FC = () => {
     const totalQuestionsInFirstHalf = Math.ceil(mockQuestions.length / 2);
     const isFirstHalf = currentQuestionIndex < totalQuestionsInFirstHalf;
   
+    const paletteRef = useRef<HTMLDivElement>(null);
+    const infoBtnRef = useRef<HTMLButtonElement>(null);
+  
     useEffect(() => {
       let timer: NodeJS.Timeout;
       if (!isBreakTime && !showResult) {
@@ -123,7 +126,11 @@ const ExamPage: React.FC = () => {
   
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
-        if (showPalette) {
+        if (showPalette && 
+            paletteRef.current && 
+            !paletteRef.current.contains(event.target as Node) &&
+            infoBtnRef.current &&
+            !infoBtnRef.current.contains(event.target as Node)) {
           setShowPalette(false);
         }
       };
@@ -197,48 +204,52 @@ const ExamPage: React.FC = () => {
       return 'unsolved';
     };
   
-    const QuestionPalette = () => (
-      <div className="fixed right-2 sm:right-4 top-16 sm:top-20 bg-white p-2 sm:p-4 rounded-lg shadow-lg w-48 sm:w-64 max-h-[60vh] sm:max-h-[80vh] overflow-y-auto z-50">
-        <h3 className="text-sm sm:text-lg font-semibold mb-2 sm:mb-4">Question Palette</h3>
-        <div className="grid grid-cols-5 gap-1 sm:gap-2">
-          {mockQuestions.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => {
-                setCurrentQuestionIndex(index);
-                setShowPalette(false);
-              }}
-              className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-semibold ${
-                getQuestionStatus(index) === 'solved' ? 'bg-green-500' :
-                getQuestionStatus(index) === 'review' ? 'bg-yellow-500' :
-                getQuestionStatus(index) === 'attempted-review' ? 'bg-purple-500' :
-                'bg-gray-400'
-              }`}
-            >
-              {index + 1}
-            </button>
-          ))}
+    const QuestionPalette = () => {
+      const visibleQuestions = breakTaken ? mockQuestions : mockQuestions.slice(0, totalQuestionsInFirstHalf);
+      
+      return (
+        <div ref={paletteRef} className="fixed right-2 sm:right-4 top-16 sm:top-20 bg-white p-2 sm:p-4 rounded-lg shadow-lg w-48 sm:w-64 max-h-[60vh] sm:max-h-[80vh] overflow-y-auto z-50">
+          <h3 className="text-sm sm:text-lg font-semibold mb-2 sm:mb-4">Question Palette</h3>
+          <div className="grid grid-cols-5 gap-1 sm:gap-2">
+            {visibleQuestions.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setCurrentQuestionIndex(index);
+                  setShowPalette(false);
+                }}
+                className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-semibold ${
+                  getQuestionStatus(index) === 'solved' ? 'bg-green-500' :
+                  getQuestionStatus(index) === 'review' ? 'bg-yellow-500' :
+                  getQuestionStatus(index) === 'attempted-review' ? 'bg-purple-500' :
+                  'bg-gray-400'
+                }`}
+              >
+                {index + 1}
+              </button>
+            ))}
+          </div>
+          <div className="mt-2 sm:mt-4 text-xs">
+            <div className="flex items-center mb-1">
+              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full mr-1 sm:mr-2"></div>
+              <span>Solved</span>
+            </div>
+            <div className="flex items-center mb-1">
+              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-500 rounded-full mr-1 sm:mr-2"></div>
+              <span>Marked for Review</span>
+            </div>
+            <div className="flex items-center mb-1">
+              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-purple-500 rounded-full mr-1 sm:mr-2"></div>
+              <span>Attempted & Marked for Review</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-gray-400 rounded-full mr-1 sm:mr-2"></div>
+              <span>Unsolved</span>
+            </div>
+          </div>
         </div>
-        <div className="mt-2 sm:mt-4 text-xs">
-          <div className="flex items-center mb-1">
-            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full mr-1 sm:mr-2"></div>
-            <span>Solved</span>
-          </div>
-          <div className="flex items-center mb-1">
-            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-500 rounded-full mr-1 sm:mr-2"></div>
-            <span>Marked for Review</span>
-          </div>
-          <div className="flex items-center mb-1">
-            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-purple-500 rounded-full mr-1 sm:mr-2"></div>
-            <span>Attempted & Marked for Review</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-gray-400 rounded-full mr-1 sm:mr-2"></div>
-            <span>Unsolved</span>
-          </div>
-        </div>
-      </div>
-    );
+      );
+    };
   
     if (showBreak) {
       return (
@@ -296,10 +307,8 @@ const ExamPage: React.FC = () => {
             </div>
             <div className="absolute top-1/2 right-2 sm:right-4 transform -translate-y-1/2">
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowPalette(!showPalette);
-                }}
+                ref={infoBtnRef}
+                onClick={() => setShowPalette(!showPalette)}
                 className="bg-white rounded-full p-1 sm:p-2 shadow-md text-blue-600 hover:text-blue-800 transition-transform duration-300 ease-in-out transform hover:scale-110"
               >
                 <Info size={16} className="w-4 h-4 sm:w-5 sm:h-5" />
