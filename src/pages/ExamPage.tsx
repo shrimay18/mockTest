@@ -209,7 +209,7 @@ const ExamPage: React.FC = () => {
       
       return (
         <div ref={paletteRef} className="fixed right-2 sm:right-4 top-16 sm:top-20 bg-white p-2 sm:p-4 rounded-lg shadow-lg w-48 sm:w-64 max-h-[60vh] sm:max-h-[80vh] overflow-y-auto z-50">
-          <h3 className="text-sm sm:text-lg font-semibold mb-2 sm:mb-4">Question Palette</h3>
+          <h3 className="text-sm sm:text-lg font-semibold mb-2 sm:mb-4 text-blue-800">Question Palette</h3>
           <div className="grid grid-cols-5 gap-1 sm:gap-2">
             {visibleQuestions.map((_, index) => (
               <button
@@ -222,7 +222,7 @@ const ExamPage: React.FC = () => {
                   getQuestionStatus(index) === 'solved' ? 'bg-green-500' :
                   getQuestionStatus(index) === 'review' ? 'bg-yellow-500' :
                   getQuestionStatus(index) === 'attempted-review' ? 'bg-purple-500' :
-                  'bg-gray-400'
+                  'bg-blue-300'
                 }`}
               >
                 {index + 1}
@@ -243,7 +243,7 @@ const ExamPage: React.FC = () => {
               <span>Attempted & Marked for Review</span>
             </div>
             <div className="flex items-center">
-              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-gray-400 rounded-full mr-1 sm:mr-2"></div>
+              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-300 rounded-full mr-1 sm:mr-2"></div>
               <span>Unsolved</span>
             </div>
           </div>
@@ -288,19 +288,19 @@ const ExamPage: React.FC = () => {
     const currentQuestion = mockQuestions[currentQuestionIndex];
   
     return (
-      <div className="min-h-screen bg-gray-100">
-        <nav className="bg-white shadow-md p-2 sm:p-4 relative">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+        <nav className="bg-gradient-to-r from-blue-600 to-blue-400 shadow-md p-2 sm:p-4 relative">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between">
-            <h1 className="font-bold text-sm sm:text-base md:text-lg lg:text-xl truncate w-full sm:w-auto text-center mb-2 sm:mb-0">
+            <h1 className="font-bold text-sm sm:text-base md:text-lg lg:text-xl truncate w-full sm:w-auto text-center mb-2 sm:mb-0 text-white">
               Mock Exam: {examId}
             </h1>
             <div className="flex flex-col items-center sm:absolute sm:left-1/2 sm:top-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2">
               {showTimer && (
-                <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold mb-1">{formatTime(timeLeft)}</span>
+                <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold mb-1 text-white">{formatTime(timeLeft)}</span>
               )}
               <button 
                 onClick={() => setShowTimer(!showTimer)}
-                className="text-xs sm:text-sm text-blue-600 hover:text-blue-800"
+                className="text-xs sm:text-sm text-white hover:text-blue-200"
               >
                 {showTimer ? 'Hide' : 'Show Timer'}
               </button>
@@ -322,11 +322,11 @@ const ExamPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="bg-white rounded-lg shadow-md relative p-3 sm:p-6"
+            className="bg-white rounded-lg shadow-lg relative p-3 sm:p-6 border border-blue-200"
           >
             <button 
               onClick={toggleBookmark}
-              className={`absolute top-2 sm:top-4 right-2 sm:right-4 text-yellow-500 hover:text-yellow-600 transition-all duration-300 transform ${bookmarks.includes(currentQuestionIndex) ? 'scale-110' : 'scale-100'}`}
+              className={`absolute top-2 sm:top-4 right-2 sm:right-4 text-blue-500 hover:text-blue-600 transition-all duration-300 transform ${bookmarks.includes(currentQuestionIndex) ? 'scale-110' : 'scale-100'}`}
             >
               <BookmarkIcon 
                 size={20} 
@@ -334,7 +334,7 @@ const ExamPage: React.FC = () => {
                 fill={bookmarks.includes(currentQuestionIndex) ? "currentColor" : "none"}
               />
             </button>
-            <h2 className="text-base sm:text-xl md:text-2xl font-bold mb-2 sm:mb-4 pr-8 sm:pr-10">{currentQuestion.text}</h2>
+            <h2 className="text-base sm:text-xl md:text-2xl font-bold mb-2 sm:mb-4 pr-8 sm:pr-10 text-blue-800">{currentQuestion.text}</h2>
             <div className="space-y-2 sm:space-y-4">
               {currentQuestion.options.map((option, index) => (
                 <button
@@ -342,8 +342,8 @@ const ExamPage: React.FC = () => {
                   onClick={() => handleAnswer(index)}
                   className={`w-full p-2 sm:p-4 text-left rounded-md transition-colors text-sm sm:text-base ${
                     userAnswers[currentQuestionIndex] === index
-                      ? 'bg-blue-200 hover:bg-blue-300'
-                      : 'bg-gray-100 hover:bg-gray-200'
+                      ? 'bg-blue-100 hover:bg-blue-200 text-blue-800'
+                      : 'bg-gray-50 hover:bg-gray-100 text-gray-800'
                   }`}
                 >
                   {option}
@@ -354,7 +354,7 @@ const ExamPage: React.FC = () => {
               <button
                 onClick={handlePrevious}
                 disabled={currentQuestionIndex === 0}
-                className="bg-blue-500 text-white py-1 sm:py-2 px-2 sm:px-4 rounded text-xs sm:text-sm hover:bg-blue-600 transition-colors disabled:bg-gray-300"
+                className="bg-blue-500 text-white py-1 sm:py-2 px-2 sm:px-4 rounded text-xs sm:text-sm hover:bg-blue-600 transition-colors disabled:bg-blue-300"
               >
                 Previous
               </button>
@@ -375,12 +375,13 @@ const ExamPage: React.FC = () => {
               )}
             </div>
           </motion.div>
-          <div className="text-center mt-2 sm:mt-4 text-gray-600 text-xs sm:text-sm">
+          <div className="text-center mt-2 sm:mt-4 text-blue-600 text-xs sm:text-sm">
             Question {currentQuestionIndex + 1} of {mockQuestions.length}
           </div>
         </div>
         {showPalette && <QuestionPalette />}
       </div>
+    
     );
   };
   
