@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { BookmarkIcon, Info, FileText,X, ArrowLeft,ArrowRight } from 'lucide-react';
 import BreakPage from './BreakPage';
 import ResultPage from './ResultPage';
+import GuidelinesPage from './GuidelinesPage';
 
 interface ReferenceModalProps {
   onClose: () => void;
@@ -137,6 +138,9 @@ const ExamPage: React.FC = () => {
     const paletteRef = useRef<HTMLDivElement>(null);
     const totalQuestions = mockQuestions.length;
     const questionsBeforeBreak = Math.ceil(totalQuestions / 2);
+    const [showGuidelines, setShowGuidelines] = useState(true);
+    const [examStarted, setExamStarted] = useState(false);
+
   
     useEffect(() => {
       const handleResize = () => {
@@ -161,7 +165,10 @@ const ExamPage: React.FC = () => {
       }
     };
   
-  
+    const handleStartExam = () => {
+      setShowGuidelines(false);
+      setExamStarted(true);
+    };
     useEffect(() => {
       let timer: NodeJS.Timeout;
       if (!isBreakTime && !showResult) {
@@ -274,7 +281,9 @@ const ExamPage: React.FC = () => {
     const handleInfoClick = () => {
       setShowPalette(prev => !prev);
     };
-  
+    if (showGuidelines) {
+      return <GuidelinesPage onStart={handleStartExam} />;
+    }
     if (showBreak) {
       return (
         <BreakPage
