@@ -120,15 +120,47 @@ const ExamPage: React.FC = () => {
     const [breakTimeLeft, setBreakTimeLeft] = useState(600); // 1.5 minutes in seconds
     const [breakTaken, setBreakTaken] = useState(false);
     const [showReferenceModal, setShowReferenceModal] = useState(false);
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+    useEffect(() => {
+      const handleResize = () => setWindowWidth(window.innerWidth);
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
     const handleCloseModal = useCallback(() => {
       setShowReferenceModal(false);
     }, []);
     const totalQuestionsInFirstHalf = Math.ceil(mockQuestions.length / 2);
     const isFirstHalf = currentQuestionIndex < totalQuestionsInFirstHalf;
-  
+    const isSmallScreen = windowWidth < 640; 
     const [palettePosition, setPalettePosition] = useState({ top: 0, left: 0 });
     const infoBtnRef = useRef<HTMLButtonElement>(null);
     const paletteRef = useRef<HTMLDivElement>(null);
+    const totalQuestions = mockQuestions.length;
+    const questionsBeforeBreak = Math.ceil(totalQuestions / 2);
+  
+    useEffect(() => {
+      const handleResize = () => {
+        setWindowWidth(window.innerWidth);
+        updatePalettePosition();
+      };
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+      updatePalettePosition();
+    }, [showPalette]);
+
+    const updatePalettePosition = () => {
+      if (infoBtnRef.current && windowWidth >= 640) {
+        const rect = infoBtnRef.current.getBoundingClientRect();
+        setPalettePosition({
+          top: rect.bottom + window.scrollY,
+          left: rect.left + window.scrollX - 250, // Adjust this value to fine-tune the horizontal position
+        });
+      }
+    };
+  
   
     useEffect(() => {
       let timer: NodeJS.Timeout;
@@ -208,6 +240,7 @@ const ExamPage: React.FC = () => {
   
     const handleBreakEnd = () => {
       setShowBreak(false);
+      setBreakTaken(true);
       setIsBreakTime(false);
       setCurrentQuestionIndex(totalQuestionsInFirstHalf);
       setBreakTimeLeft(90); // Reset break time for future use if needed
@@ -239,64 +272,7 @@ const ExamPage: React.FC = () => {
     };
   
     const handleInfoClick = () => {
-      if (infoBtnRef.current) {
-        const rect = infoBtnRef.current.getBoundingClientRect();
-        setPalettePosition({
-          top: rect.bottom + window.scrollY,
-          left: rect.left + window.scrollX
-        });
-        setShowPalette(!showPalette);
-      }
-    };
-    const QuestionPalette = ({ top, left }: { top: number; left: number }) => {
-      const visibleQuestions = breakTaken ? mockQuestions : mockQuestions.slice(0, totalQuestionsInFirstHalf);
-      
-      return (
-        <div 
-          ref={paletteRef}
-          className="fixed bg-white p-2 sm:p-4 rounded-lg shadow-lg w-48 sm:w-64 max-h-[60vh] sm:max-h-[80vh] overflow-y-auto z-50"
-          style={{ top: `${top}px`, left: `${left}px` }}
-        >
-          <h3 className="text-sm sm:text-lg font-semibold mb-2 sm:mb-4 text-blue-800">Question Palette</h3>
-          <div className="grid grid-cols-5 gap-1 sm:gap-2">
-            {visibleQuestions.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setCurrentQuestionIndex(index);
-                  setShowPalette(false);
-                }}
-                className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-semibold ${
-                  getQuestionStatus(index) === 'solved' ? 'bg-green-500' :
-                  getQuestionStatus(index) === 'review' ? 'bg-yellow-500' :
-                  getQuestionStatus(index) === 'attempted-review' ? 'bg-purple-500' :
-                  'bg-blue-300'
-                }`}
-              >
-                {index + 1}
-              </button>
-            ))}
-          </div>
-          <div className="mt-2 sm:mt-4 text-xs">
-            <div className="flex items-center mb-1">
-              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full mr-1 sm:mr-2"></div>
-              <span>Solved</span>
-            </div>
-            <div className="flex items-center mb-1">
-              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-500 rounded-full mr-1 sm:mr-2"></div>
-              <span>Marked for Review</span>
-            </div>
-            <div className="flex items-center mb-1">
-              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-purple-500 rounded-full mr-1 sm:mr-2"></div>
-              <span>Attempted & Marked for Review</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-300 rounded-full mr-1 sm:mr-2"></div>
-              <span>Unsolved</span>
-            </div>
-          </div>
-        </div>
-      );
+      setShowPalette(prev => !prev);
     };
   
     if (showBreak) {
@@ -332,50 +308,111 @@ const ExamPage: React.FC = () => {
         />
       );
     }
+    const QuestionPalette = () => {
+      const visibleQuestions = breakTaken ? mockQuestions : mockQuestions.slice(0, questionsBeforeBreak);
+      return(
+        <div 
+        ref={paletteRef}
+        className={`fixed bg-white p-4 rounded-lg shadow-lg overflow-y-auto z-50 ${
+          isSmallScreen ? 'inset-0' : ''
+        }`}
+        style={isSmallScreen ? {} : {
+          top: `${palettePosition.top}px`,
+          left: `${palettePosition.left}px`,
+          width: '300px',
+          maxHeight: '80vh'
+        }}
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-blue-800">Question Palette</h3>
+          <button onClick={() => setShowPalette(false)} className="text-gray-500 hover:text-gray-700">
+            <X size={24} />
+          </button>
+        </div>
+        <div className="grid grid-cols-5 gap-2">
+          {mockQuestions.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => {
+                setCurrentQuestionIndex(index);
+                setShowPalette(false);
+              }}
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold ${
+                getQuestionStatus(index) === 'solved' ? 'bg-green-500' :
+                getQuestionStatus(index) === 'review' ? 'bg-yellow-500' :
+                getQuestionStatus(index) === 'attempted-review' ? 'bg-purple-500' :
+                'bg-blue-300'
+              } ${currentQuestionIndex === index ? 'ring-2 ring-offset-2 ring-blue-600' : ''}
+              ${(!breakTaken && index >= questionsBeforeBreak) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={!breakTaken && index >= questionsBeforeBreak}
+            >
+              {index + 1}
+            </button>
+          ))}
+        </div>
+        <div className="mt-4 text-xs">
+          <div className="flex items-center mb-1">
+            <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+            <span>Solved</span>
+          </div>
+          <div className="flex items-center mb-1">
+            <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+            <span>Marked for Review</span>
+          </div>
+          <div className="flex items-center mb-1">
+            <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+            <span>Attempted & Marked for Review</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-3 h-3 bg-blue-300 rounded-full mr-2"></div>
+            <span>Unsolved</span>
+          </div>
+        </div>
+      </div>
+      ); 
+    };
   
     const currentQuestion = mockQuestions[currentQuestionIndex];
   
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-        <nav className="bg-gradient-to-r from-blue-600 to-blue-400 shadow-md p-2 sm:p-4">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <h1 className="font-bold text-sm sm:text-base md:text-lg lg:text-xl text-white truncate flex-shrink-0 max-w-[30%]">
-              {examId}
-            </h1>
-            
-            <div className="flex flex-col items-center">
-              {showTimer && (
-                <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-white">
-                  {formatTime(timeLeft)}
-                </span>
-              )}
-              <button 
-                onClick={() => setShowTimer(!showTimer)}
-                className="text-xs sm:text-sm text-white hover:text-blue-200"
-              >
-                {showTimer ? 'Hide' : 'Show Timer'}
-              </button>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setShowReferenceModal(true)}
-                className="bg-white rounded-full p-1 sm:p-1.5 shadow-md text-blue-600 hover:text-blue-800 transition-transform duration-300 ease-in-out transform hover:scale-110"
-              >
-                <FileText size={14} className="w-3 h-3 sm:w-4 sm:h-4" />
-              </button>
-              <button
-                ref={infoBtnRef}
-                onClick={handleInfoClick}
-                className="bg-white rounded-full p-1 sm:p-1.5 shadow-md text-blue-600 hover:text-blue-800 transition-transform duration-300 ease-in-out transform hover:scale-110"
-              >
-                <Info size={14} className="w-3 h-3 sm:w-4 sm:h-4" />
-              </button>
-            </div>
+      <nav className="bg-gradient-to-r from-blue-600 to-blue-400 shadow-md p-2 sm:p-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <h1 className="font-bold text-sm sm:text-base md:text-lg lg:text-xl text-white truncate flex-shrink-0 max-w-[30%]">
+            {examId}
+          </h1>
+          <div className="flex flex-col items-center">
+            {showTimer && (
+              <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-white">
+                {formatTime(timeLeft)}
+              </span>
+            )}
+            <button 
+              onClick={() => setShowTimer(!showTimer)}
+              className="text-xs sm:text-sm text-white hover:text-blue-200"
+            >
+              {showTimer ? 'Hide' : 'Show Timer'}
+            </button>
           </div>
-        </nav>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setShowReferenceModal(true)}
+              className="bg-white rounded-full p-1 sm:p-1.5 shadow-md text-blue-600 hover:text-blue-800 transition-transform duration-300 ease-in-out transform hover:scale-110"
+            >
+              <FileText size={14} className="w-3 h-3 sm:w-4 sm:h-4" />
+            </button>
+            <button
+              ref={infoBtnRef}
+              onClick={handleInfoClick}
+              className="bg-white rounded-full p-1 sm:p-1.5 shadow-md text-blue-600 hover:text-blue-800 transition-transform duration-300 ease-in-out transform hover:scale-110"
+            >
+              <Info size={14} className="w-3 h-3 sm:w-4 sm:h-4" />
+            </button>
+          </div>
+        </div>
+      </nav>
         <main className="max-w-3xl mx-auto mt-4 sm:mt-8 px-2 sm:px-4 lg:px-8">
-        <div className="text-center mb-2 sm:mb-4 text-blue-600 text-sm sm:text-base font-semibold">
+          <div className="text-center mb-2 sm:mb-4 text-blue-600 text-sm sm:text-base font-semibold">
             Question {currentQuestionIndex + 1} of {mockQuestions.length}
         </div>
         <div className="bg-white rounded-lg shadow-lg relative p-3 sm:p-6 border border-blue-200">
@@ -448,10 +485,10 @@ const ExamPage: React.FC = () => {
         </div>
       </main>
 
-      {showReferenceModal && <ReferenceModal onClose={handleCloseModal} />}
-      {showPalette && <QuestionPalette top={palettePosition.top} left={palettePosition.left} />}
+      {showReferenceModal && <ReferenceModal onClose={() => setShowReferenceModal(false)} />}
+      {showPalette && <QuestionPalette />}
     </div>
   );
 };
   
-  export default ExamPage;
+export default ExamPage;
