@@ -86,7 +86,7 @@ const ExamPage: React.FC = () => {
     const [isBreakTime, setIsBreakTime] = useState(false);
     const [showResult, setShowResult] = useState(false);
     const [showPalette, setShowPalette] = useState(false);
-    const [breakTimeLeft, setBreakTimeLeft] = useState(90); // 1.5 minutes in seconds
+    const [breakTimeLeft, setBreakTimeLeft] = useState(600); // 1.5 minutes in seconds
     const [breakTaken, setBreakTaken] = useState(false);
   
     const totalQuestionsInFirstHalf = Math.ceil(mockQuestions.length / 2);
@@ -149,9 +149,7 @@ const ExamPage: React.FC = () => {
       // Automatically move to the next question
       if (currentQuestionIndex < mockQuestions.length - 1) {
         handleNext();
-      } else {
-        setShowResult(true);
-      }
+      } 
     };
   
     const handleNext = () => {
